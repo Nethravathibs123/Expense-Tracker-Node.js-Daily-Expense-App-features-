@@ -1,40 +1,73 @@
-const expenses = []; // Array to store expenses temporarily; replace with database logic as needed
+const Expense = require('../models/expense');
+;
 
-exports.getAllExpenses = (req, res) => {
-  res.json(expenses);
-};
-
-exports.addExpense = (req, res) => {
+// Controller for adding expenses
+exports.addExpense = async (req, res) => {
   const { amount, description, category } = req.body;
-  const id = expenses.length ? expenses[expenses.length - 1].id + 1 : 1;
-  const expense = { id, amount, description, category };
-  expenses.push(expense);
-  res.status(201).json(expense);
-};
 
-exports.updateExpense = (req, res) => {
-  const { id } = req.params;
-  const { amount, description, category } = req.body;
-  const expense = expenses.find(exp => exp.id == id);
-  
-  if (expense) {
-    expense.amount = amount;
-    expense.description = description;
-    expense.category = category;
-    res.json(expense);
-  } else {
-    res.status(404).json({ message: 'Expense not found' });
+  try {
+      const newExpense = await Expense.create({
+          title: description,  
+          category,
+          amount,
+          details: description,  // Mapped to details in the model
+      });
+      res.status(201).json(newExpense);
+  } catch (error) {
+      console.error('Error adding expense:', error);
+      res.status(500).json({ error: 'Error adding expense' });
   }
 };
 
-exports.deleteExpense = (req, res) => {
-  const { id } = req.params;
-  const index = expenses.findIndex(exp => exp.id == id);
-  
-  if (index !== -1) {
-    expenses.splice(index, 1);
-    res.status(204).send();
-  } else {
-    res.status(404).json({ message: 'Expense not found' });
+// Controller for getting all expenses
+exports.getAllExpenses = async (req, res) => {
+  try {
+      const expenses = await Expense.findAll();
+      res.status(200).json(expenses);
+  } catch (error) {
+      console.error('Error fetching expenses:', error);
+      res.status(500).json({ error: 'Error fetching expenses' });
+  }
+};
+
+// Update an existing expense
+exports.updateExpense = async (req, res) => {
+  const expenseId = req.params.id;
+  const { amount, description, category } = req.body;
+
+  try {
+      const expense = await Expense.findByPk(expenseId);
+      if (!expense) {
+          return res.status(404).json({ error: 'Expense not found.' });
+      }
+
+      // Update expense fields
+      expense.amount = amount;
+      expense.description = description;
+      expense.category = category;
+      await expense.save();
+
+      res.status(200).json(expense);
+  } catch (error) {
+      console.error('Error updating expense:', error);
+      res.status(500).json({ error: 'An error occurred while updating the expense.' });
+  }
+};
+
+// Delete an expense
+exports.deleteExpense = async (req, res) => {
+  const expenseId = req.params.id;
+
+  try {
+      const expense = await Expense.findByPk(expenseId);
+      if (!expense) {
+          return res.status(404).json({ error: 'Expense not found.' });
+      }
+
+      await expense.destroy();
+      res.status(200).json({ message: 'Expense deleted successfully.' });
+  } catch (error) {
+      console.error('Error deleting expense:', error);
+      res.status(500).json({ error: 'An error occurred while deleting the expense.' });
   }
 };

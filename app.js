@@ -1,18 +1,34 @@
+const path = require('path');
 const express = require('express');
-const bodyParser = require('body-parser');
-const expenseRoutes = require('./routes/expense'); // Route file we'll create
-
 const app = express();
-const PORT = 3000;
+const bodyParser = require('body-parser');
+const cors = require("cors");
+const sequelize = require ('./util/database');
 
-app.use(bodyParser.json()); // Parses JSON data from the request body
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-  next();
+
+const Users = require ('./models/user');
+const Expense = require('./models/expense');
+
+app.use(express.static(path.join(__dirname, 'public')));
+const userRoutes = require('./routes/user');
+const expenseRoutes = require('./routes/expense'); 
+
+
+
+app.use(express.json());
+app.use(cors());
+
+app.use('/user', userRoutes);
+app.use('/expenses', expenseRoutes); 
+
+
+const port = 3000;
+sequelize
+.sync()
+.then((result) => {
+    console.log(`server is working on http://localhost:${port}`);
+   app.listen(port);
+}).catch((err) => {
+    console.log(err)
 });
 
-app.use('/expenses', expenseRoutes); // Route all /expenses requests to expenseRoutes
-
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
