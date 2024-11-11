@@ -7,10 +7,10 @@ exports.addExpense = async (req, res) => {
 
   try {
       const newExpense = await Expense.create({
-          title: description,  
+        description,  
           category,
           amount,
-          details: description,  // Mapped to details in the model
+         // Mapped to details in the model
       });
       res.status(201).json(newExpense);
   } catch (error) {

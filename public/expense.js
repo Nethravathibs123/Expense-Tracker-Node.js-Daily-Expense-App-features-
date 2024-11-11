@@ -13,7 +13,8 @@ function renderExpenses() {
     expenses.forEach((expense, index) => {
         const newli = document.createElement('li');
         newli.className = 'expense-content';
-        newli.textContent = `${expense.amount} - ${expense.description} - ${expense.category}`;
+        newli.textContent = `${expense.amount} - ${expense.description || 'No description'} - ${expense.category}`;
+  
 
         const dltButton = document.createElement('button');
         dltButton.textContent = 'Delete';
